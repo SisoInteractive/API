@@ -15,11 +15,18 @@
             color: #666;
         }
 
+	li {
+	    font-size: 24px; 
+        }
 
+	#debug {
+	    font-size: 40px;
+	}
     </style>
 </head>
 <body>
 <div class="wrap">
+    <p id="debug"></p>
     <h1>Wechat API Test</h1>
 
     <ul>
@@ -28,43 +35,44 @@
 </div>
 
 <?php
-    require_once "jssdk.php";
+    require_once "wechat_jsSDK.php";
     $jssdk = new JSSDK("wx37fcdf2b531a3be4", "c7a43b67d70bc3841685e22d856db6ac");
     $signPackage = $jssdk->GetSignPackage();
 ?>
 
-<script>
+<script type="text/javascript">
     /**
      *      Wechat Config
      */
+function $$(selector) { return document.querySelector(selector);}    
 
     wx.config({
+        debug: false, //  debug
         appId: '<?php echo $signPackage["appId"];?>',
         timestamp: <?php echo $signPackage["timestamp"];?>,
         nonceStr: '<?php echo $signPackage["nonceStr"];?>',
         signature: '<?php echo $signPackage["signature"];?>',
         jsApiList: [
-          // 所有要调用的 API 都要加到这个列表中
-        ]
+            'chooseImage'
+	]
     });
 
-    wx.ready(function(){
-        console.log('Success to connected to wechat server....');
+wx.ready(function(){
+    console.log('Success to connect to wechat server.');
+    
+    //  choose img
+    $$('.chooseImage').onclick = function (){
+        wx.chooseImage({
+            success: function (res) {
+                var localIds = res.localIds; // 返回选定照片的本地ID列表，localId可以作为img标签的src属性显示图片
+            }
+	});
+    };	
+});
 
-
-        document.querySelector(".chooseImage").onclick = function (){
-            wx.chooseImage({
-                success: function (res) {
-                    var localIds = res.localIds; // 返回选定照片的本地ID列表，localId可以作为img标签的src属性显示图片
-                }
-            });
-        };
-    });
-
-    wx.error(function (res){
-        console.log('连接微信服务器嗝屁了...');
-        console.log(res);
-    });
+wx.error(function (res) {
+	document.querySelector('#debug').innerHTML = JSON.stringfy(res);
+});
 </script>
 </body>
 </html>
